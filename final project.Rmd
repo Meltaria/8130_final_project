@@ -1,0 +1,42 @@
+---
+title: "final project"
+author: "Yuchen Zhang"
+date: "2022-12-12"
+output: github_document
+---
+```{r, include=FALSE}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+```
+
+### Distribution of Data
+
+```{r}
+Body_df = readxl::read_excel("data/body_density_data.xlsx")
+summary(Body_df)
+```
+
+
+```{r}
+ggplot(Body_df, aes(x=bodyfat_brozek)) + 
+ geom_histogram(aes(y=..density..), colour="white", fill="blue",binwidth = 1)+
+ geom_density(alpha=.2)+
+ labs(title="Distributions of body fat measured in Brozek method")
+
+```
+```{r}
+colnames = colnames(Body_df)
+
+for (i in 5:17){
+  plot = 
+ggplot(Body_df, aes_string(x=colnames[i])) + 
+ geom_histogram(aes(y=..density..), color="white", fill="blue",binwidth = 1)+
+ geom_density(alpha=.2)+
+ labs(title=sprintf("Distributions of %s", colnames[i]) )
+  
+  print(plot)
+}
+```
+
+
