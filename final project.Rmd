@@ -20,11 +20,12 @@ summary(Body_df)
 
 ```{r}
 ggplot(Body_df, aes(x=bodyfat_brozek)) + 
- geom_histogram(aes(y=..density..), colour="white", fill="blue",binwidth = 1)+
+ geom_histogram(aes(y=..density..), color="white", fill="blue",binwidth = 1)+
  geom_density(alpha=.2)+
  labs(title="Distributions of body fat measured in Brozek method")
 
 ```
+
 ```{r}
 colnames = colnames(Body_df)
 
@@ -39,4 +40,21 @@ ggplot(Body_df, aes_string(x=colnames[i])) +
 }
 ```
 
+```{r,message = FALSE, warning = FALSE}
+for (i in 5:17){
+  plot = 
+  Body_df %>% 
+    ggplot(aes_string(x = colnames[i], y = "bodyfat_brozek"))+geom_point()+geom_smooth(method = 'lm', se = TRUE, color = 'red')+
+    labs(title = sprintf("Scatter plot for body fat against %s", colnames[i]) )+
+    ylab("Body Fat (Brozek)")
+  
+  print(plot)
+}
+```
+
+```{r}
+bodyfat_selected = 
+  Body_df %>% 
+  dplyr::select(-id,-bodyfat_siri,-body_density)
+```
 
