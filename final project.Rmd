@@ -6,8 +6,12 @@ output: github_document
 ---
 ```{r, include=FALSE}
 library(tidyverse)
+library(readr)
 library(dplyr)
 library(ggplot2)
+library(leaps)
+library(glmnet)
+library(caret)
 ```
 
 ### Distribution of Data
@@ -57,4 +61,73 @@ bodyfat_selected =
   Body_df %>% 
   dplyr::select(-id,-bodyfat_siri,-body_density)
 ```
+
+## Linear Regression ## 
+All the variables are normal and required no transformation.
+Based the variables' we selected, let's firstly fit all them into a MLR model.
+```{r}
+multifit = lm(bodyfat_brozek ~ ., data = bodyfat_selected)
+```
+
+
+### Automatic Selection ###
+Backward Elmination
+```{r}
+step(multifit, direction = "backward")
+```
+The Final model obtained from Backward Elimination is 
+__lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_selected)__
+
+Forward selection
+```{r}
+intercept_only = lm(bodyfat_brozek ~ 1, data = bodyfat_selected)
+step(intercept_only, direction = "forward", scope = formula(multifit))
+```
+The model obtained from Forward Selection is 
+__lm(formula = bodyfat_brozek ~ abdomen + weight + wrist + forearm + neck + age + thigh + hip, data = bodyfat_selected)__
+
+Stepwise Selection
+```{r}
+step(multifit, direction = "both")
+```
+The stepwise selection from both side get us the model to be
+__lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_selected)__
+
+From the procedures we done above, the fianl model was agree to be __lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_selected)__
+
+
+### Tested Based Procedures ###
+Then, let's try Tested Based Procedures
+"Cp test"
+```{r}
+mat = as.matrix(bodyfat_selected)
+leaps(x = mat[,2:14], y =mat[,1], nbest = 1, method ="Cp")
+```
+The smallest Cp value we got indicate that best model:
+__lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_selected)__
+
+```{r}
+leaps(x = mat[,2:14], y =mat[,1], nbest = 1, method ="adjr2")
+```
+The largest adjusted R2 indicated the best subset to be:
+__lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data= bodyfat_selected)__
+
+### LASSO ###
+Let's use corss validation to choose lambda
+```{r}
+lambda_seq = 10^seq(-3, 0, by = 0.1)
+set.seed(1)
+cv_bodyfat = cv.glmnet(as.matrix(bodyfat_selected[2:14]), bodyfat_selected$bodyfat_brozek, lambda = lambda_seq, nfolds = 5)
+cv_bodyfat
+```
+The Lambda minimum is 0.0794. 
+Then, let's reun a LASSO regression using this value.
+```{r}
+lasso_fit = glmnet::glmnet(as.matrix(bodyfat_selected[2:14]), bodyfat_selected$bodyfat_brozek, lambda = cv_bodyfat$lambda.min)
+coef(lasso_fit)
+```
+The final model obtained from LASSO is
+__lm(formula =bodyfat_brozek ~ age + weight + height + neck + abdomen + hip + thigh + bicep + forearm + wrist, data= bodyfat_selected)__
+
+
 
