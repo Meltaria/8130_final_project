@@ -2,12 +2,13 @@
 title: "final project"
 author: "Yuchen Zhang"
 date: "2022-12-12"
-output: github_document
+output: html_document
 ---
 ```{r, include=FALSE}
 library(tidyverse)
 library(readr)
 library(dplyr)
+library(corrplot)
 library(ggplot2)
 library(leaps)
 library(glmnet)
@@ -62,6 +63,15 @@ bodyfat_selected =
   dplyr::select(-id,-bodyfat_siri,-body_density)
 ```
 
+```{r}
+pairs(bodyfat_selected)
+```
+
+```{r}
+corrplot(cor(bodyfat_selected), type = "upper", diag = FALSE)
+```
+
+
 ## Linear Regression ## 
 All the variables are normal and required no transformation.
 Based the variables' we selected, let's firstly fit all them into a MLR model.
@@ -70,7 +80,7 @@ multifit = lm(bodyfat_brozek ~ ., data = bodyfat_selected)
 ```
 
 
-### Automatic Selection ###
+#### Automatic Selection ####
 Backward Elmination
 ```{r}
 step(multifit, direction = "backward")
@@ -96,7 +106,7 @@ __lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + fo
 From the procedures we done above, the fianl model was agree to be __lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_selected)__
 
 
-### Tested Based Procedures ###
+#### Tested Based Procedures ####
 Then, let's try Tested Based Procedures
 "Cp test"
 ```{r}
@@ -112,7 +122,7 @@ leaps(x = mat[,2:14], y =mat[,1], nbest = 1, method ="adjr2")
 The largest adjusted R2 indicated the best subset to be:
 __lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data= bodyfat_selected)__
 
-### LASSO ###
+#### LASSO ####
 Let's use corss validation to choose lambda
 ```{r}
 lambda_seq = 10^seq(-3, 0, by = 0.1)
@@ -128,6 +138,17 @@ coef(lasso_fit)
 ```
 The final model obtained from LASSO is
 __lm(formula =bodyfat_brozek ~ age + weight + height + neck + abdomen + hip + thigh + bicep + forearm + wrist, data= bodyfat_selected)__
+
+#### Model choose #### 
+Stepwise selection and criterion test both indicate the same model. Though LASSO included height and bicep, the model is still similar. Thus, we would choose the final model as:
+```{r}
+final_model = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data= bodyfat_selected)
+summary(final_model)
+broom::tidy(final_model)
+```
+
+### 
+
 
 
 
