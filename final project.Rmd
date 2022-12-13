@@ -33,7 +33,7 @@ ggplot(Body_df, aes(x=bodyfat_brozek)) +
 
 ```{r}
 colnames = colnames(Body_df)
-
+par(mfrow = c(5,3))
 for (i in 5:17){
   plot = 
 ggplot(Body_df, aes_string(x=colnames[i])) + 
@@ -46,6 +46,7 @@ ggplot(Body_df, aes_string(x=colnames[i])) +
 ```
 
 ```{r,message = FALSE, warning = FALSE}
+par(mfrow = c(5,3))
 for (i in 5:17){
   plot = 
   Body_df %>% 
@@ -146,8 +147,6 @@ final_model = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + 
 summary(final_model)
 broom::tidy(final_model)
 ```
-
-### 
 
 
 
