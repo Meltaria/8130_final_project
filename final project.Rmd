@@ -13,6 +13,8 @@ library(ggplot2)
 library(leaps)
 library(glmnet)
 library(caret)
+library(modelr)
+set.seed(1)
 ```
 
 ### Distribution of Data
@@ -24,34 +26,43 @@ summary(Body_df)
 
 
 ```{r}
-ggplot(Body_df, aes(x=bodyfat_brozek)) + 
- geom_histogram(aes(y=..density..), color="white", fill="blue",binwidth = 1)+
- geom_density(alpha=.2)+
- labs(title="Distributions of body fat measured in Brozek method")
+ggplot(Body_df, aes(x = bodyfat_brozek)) + 
+ geom_histogram(aes(y = ..density..), color = "white", fill = "blue",binwidth = 1) +
+ geom_density(alpha = .2) +
+ labs(title = "Distributions of body fat measured in Brozek method")
 
 ```
 
 ```{r}
 colnames = colnames(Body_df)
+<<<<<<< HEAD
 par(mfrow = c(5,3))
 for (i in 5:17){
+=======
+
+for (i in 5:17) {
+>>>>>>> 88c4676d48de3958a596a44d85f9f0c0a6174079
   plot = 
-ggplot(Body_df, aes_string(x=colnames[i])) + 
- geom_histogram(aes(y=..density..), color="white", fill="blue",binwidth = 1)+
- geom_density(alpha=.2)+
- labs(title=sprintf("Distributions of %s", colnames[i]) )
+ggplot(Body_df, aes_string(x = colnames[i])) + 
+ geom_histogram(aes(y = ..density..), color = "white", fill = "blue",binwidth = 1) + 
+ geom_density(alpha = .2) +
+ labs(title = sprintf("Distributions of %s", colnames[i]) )
   
   print(plot)
 }
 ```
 
 ```{r,message = FALSE, warning = FALSE}
+<<<<<<< HEAD
 par(mfrow = c(5,3))
 for (i in 5:17){
+=======
+for (i in 5:17) {
+>>>>>>> 88c4676d48de3958a596a44d85f9f0c0a6174079
   plot = 
   Body_df %>% 
-    ggplot(aes_string(x = colnames[i], y = "bodyfat_brozek"))+geom_point()+geom_smooth(method = 'lm', se = TRUE, color = 'red')+
-    labs(title = sprintf("Scatter plot for body fat against %s", colnames[i]) )+
+    ggplot(aes_string(x = colnames[i], y = "bodyfat_brozek")) + geom_point() + geom_smooth(method = 'lm', se = TRUE, color = 'red') +
+    labs(title = sprintf("Scatter plot for body fat against %s", colnames[i]) ) +
     ylab("Body Fat (Brozek)")
   
   print(plot)
@@ -104,7 +115,7 @@ step(multifit, direction = "both")
 The stepwise selection from both side get us the model to be
 __lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_selected)__
 
-From the procedures we done above, the fianl model was agree to be __lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_selected)__
+From the procedures we done above, the fianl model was agreed to be __lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_selected)__
 
 
 #### Tested Based Procedures ####
@@ -112,13 +123,13 @@ Then, let's try Tested Based Procedures
 "Cp test"
 ```{r}
 mat = as.matrix(bodyfat_selected)
-leaps(x = mat[,2:14], y =mat[,1], nbest = 1, method ="Cp")
+leaps(x = mat[,2:14], y = mat[,1], nbest = 1, method = "Cp")
 ```
 The smallest Cp value we got indicate that best model:
 __lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_selected)__
 
 ```{r}
-leaps(x = mat[,2:14], y =mat[,1], nbest = 1, method ="adjr2")
+leaps(x = mat[,2:14], y = mat[,1], nbest = 1, method = "adjr2")
 ```
 The largest adjusted R2 indicated the best subset to be:
 __lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data= bodyfat_selected)__
@@ -138,8 +149,9 @@ lasso_fit = glmnet::glmnet(as.matrix(bodyfat_selected[2:14]), bodyfat_selected$b
 coef(lasso_fit)
 ```
 The final model obtained from LASSO is
-__lm(formula =bodyfat_brozek ~ age + weight + height + neck + abdomen + hip + thigh + bicep + forearm + wrist, data= bodyfat_selected)__
+__lm(formula =bodyfat_brozek ~ age + weight + height + neck + abdomen + hip + thigh + bicep + forearm + wrist, data = bodyfat_selected)__
 
+<<<<<<< HEAD
 #### Model choose #### 
 Stepwise selection and criterion test both indicate the same model. Though LASSO included height and bicep, the model is still similar. Thus, we would choose the final model as:
 ```{r}
@@ -149,5 +161,93 @@ broom::tidy(final_model)
 ```
 
 
+=======
+### Model Validation ###
+Since the lasso method incurs a different model, so we will adopt model validation to choose the better model.
+First, use 5-fold validation and create the training sets.
+```{r}
+train = trainControl(method = "cv", number = 5)
+```
+Then, fit the lasso model.
+```{r}
+model_lasso = train(bodyfat_brozek ~ age + weight + height + neck + abdomen + hip + thigh + bicep + forearm + wrist, 
+                    data = bodyfat_selected,
+                    trControl = train,
+                    method = "lm",
+                    na.action = na.pass)
+>>>>>>> 88c4676d48de3958a596a44d85f9f0c0a6174079
 
+model_lasso$finalModel
+```
+
+```{r}
+print(model_lasso)
+```
+RMSE for model_lasso is 4.077981; Rsquared is 0.7296759; MAE is 3.329993.
+Now, fit the test_based model.
+```{r}
+model_test = train(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, 
+                    data = bodyfat_selected,
+                    trControl = train,
+                    method = "lm",
+                    na.action = na.pass)
+
+model_test$finalModel
+```
+
+```{r}
+print(model_test)
+```
+RMSE for model_test is 4.078487; Rsquared is 0.7310717; MAE is 3.340266
+Since the RMSE and MAE are slightly smaller in the lasso model, we would slightly favor the lasso model. However, considering the principle of parsimony, we will run ANOVA to further compare the two models.
+
+### ANOVA for MLR ###
+```{r}
+model_small = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, 
+                    data = bodyfat_selected)
+model_large = lm(bodyfat_brozek ~ age + weight + height + neck + abdomen + hip + thigh + bicep + forearm + wrist, data = bodyfat_selected)
+
+anova(model_small,model_large)
+```
+F = 0.5015, p_value = 0.6062, we fail to reject H0 and conclude that the larger model is not superior. Now, according to the principle of parsimony, we will choose the small model.
+```{r}
+model_final = model_small
+summary(model_final)
+```
+
+## Model Diagnostics ##
+
+#### Residual vs Fitted & QQ Plots ####
+Residual vs Fitted plot
+```{r}
+plot(model_final, which = 1)
+```
+Heteroscedasticity is not detected.
+
+QQ plot
+```{r}
+plot(model_final, which = 2)
+```
+Residuals appear to be normal.
+No transformations needed.
+
+#### Checking to Outliers and Influential Points ####
+Residuals vs Leverage plot
+```{r}
+plot(model_final, which = 4)
+```
+remove influential points and fit model without influential points
+```{r}
+bodyfat_out = bodyfat_selected[-c(39,175,216),]
+
+without = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, 
+                    data = bodyfat_out)
+summary(without)
+```
+check without diagnostics
+```{r}
+plot(without)
+```
+
+#### Assessing Multicollinearity ####
 
