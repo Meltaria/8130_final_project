@@ -40,10 +40,10 @@ summary(Body_df)
     ##  Max.   :49.10   Max.   :33.9   Max.   :45.00   Max.   :34.90   Max.   :21.40
 
 ``` r
-ggplot(Body_df, aes(x=bodyfat_brozek)) + 
- geom_histogram(aes(y=..density..), color="white", fill="blue",binwidth = 1)+
- geom_density(alpha=.2)+
- labs(title="Distributions of body fat measured in Brozek method")
+ggplot(Body_df, aes(x = bodyfat_brozek)) + 
+ geom_histogram(aes(y = ..density..), color = "white", fill = "blue",binwidth = 1) +
+ geom_density(alpha = .2) +
+ labs(title = "Distributions of body fat measured in Brozek method")
 ```
 
     ## Warning: The dot-dot notation (`..density..`) was deprecated in ggplot2 3.4.0.
@@ -54,12 +54,12 @@ ggplot(Body_df, aes(x=bodyfat_brozek)) +
 ``` r
 colnames = colnames(Body_df)
 
-for (i in 5:17){
+for (i in 5:17) {
   plot = 
-ggplot(Body_df, aes_string(x=colnames[i])) + 
- geom_histogram(aes(y=..density..), color="white", fill="blue",binwidth = 1)+
- geom_density(alpha=.2)+
- labs(title=sprintf("Distributions of %s", colnames[i]) )
+ggplot(Body_df, aes_string(x = colnames[i])) + 
+ geom_histogram(aes(y = ..density..), color = "white", fill = "blue",binwidth = 1) + 
+ geom_density(alpha = .2) +
+ labs(title = sprintf("Distributions of %s", colnames[i]) )
   
   print(plot)
 }
@@ -71,11 +71,11 @@ ggplot(Body_df, aes_string(x=colnames[i])) +
 ![](final-project_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->![](final-project_files/figure-gfm/unnamed-chunk-4-2.png)<!-- -->![](final-project_files/figure-gfm/unnamed-chunk-4-3.png)<!-- -->![](final-project_files/figure-gfm/unnamed-chunk-4-4.png)<!-- -->![](final-project_files/figure-gfm/unnamed-chunk-4-5.png)<!-- -->![](final-project_files/figure-gfm/unnamed-chunk-4-6.png)<!-- -->![](final-project_files/figure-gfm/unnamed-chunk-4-7.png)<!-- -->![](final-project_files/figure-gfm/unnamed-chunk-4-8.png)<!-- -->![](final-project_files/figure-gfm/unnamed-chunk-4-9.png)<!-- -->![](final-project_files/figure-gfm/unnamed-chunk-4-10.png)<!-- -->![](final-project_files/figure-gfm/unnamed-chunk-4-11.png)<!-- -->![](final-project_files/figure-gfm/unnamed-chunk-4-12.png)<!-- -->![](final-project_files/figure-gfm/unnamed-chunk-4-13.png)<!-- -->
 
 ``` r
-for (i in 5:17){
+for (i in 5:17) {
   plot = 
   Body_df %>% 
-    ggplot(aes_string(x = colnames[i], y = "bodyfat_brozek"))+geom_point()+geom_smooth(method = 'lm', se = TRUE, color = 'red')+
-    labs(title = sprintf("Scatter plot for body fat against %s", colnames[i]) )+
+    ggplot(aes_string(x = colnames[i], y = "bodyfat_brozek")) + geom_point() + geom_smooth(method = 'lm', se = TRUE, color = 'red') +
+    labs(title = sprintf("Scatter plot for body fat against %s", colnames[i]) ) +
     ylab("Body Fat (Brozek)")
   
   print(plot)
@@ -538,7 +538,7 @@ Then, let’s try Tested Based Procedures “Cp test”
 
 ``` r
 mat = as.matrix(bodyfat_selected)
-leaps(x = mat[,2:14], y =mat[,1], nbest = 1, method ="Cp")
+leaps(x = mat[,2:14], y = mat[,1], nbest = 1, method = "Cp")
 ```
 
     ## $which
@@ -574,7 +574,7 @@ bodyfat_brozek \~ age + weight + neck + abdomen + hip + thigh +
 forearm + wrist, data = bodyfat_selected)**
 
 ``` r
-leaps(x = mat[,2:14], y =mat[,1], nbest = 1, method ="adjr2")
+leaps(x = mat[,2:14], y = mat[,1], nbest = 1, method = "adjr2")
 ```
 
     ## $which
