@@ -528,7 +528,7 @@ The stepwise selection from both side get us the model to be
 **lm(formula = bodyfat_brozek \~ age + weight + neck + abdomen + hip +
 thigh + forearm + wrist, data = bodyfat_selected)**
 
-From the procedures we done above, the fianl model was agree to be
+From the procedures we done above, the fianl model was agreed to be
 **lm(formula = bodyfat_brozek \~ age + weight + neck + abdomen + hip +
 thigh + forearm + wrist, data = bodyfat_selected)**
 
@@ -656,4 +656,236 @@ coef(lasso_fit)
 
 The final model obtained from LASSO is **lm(formula =bodyfat_brozek \~
 age + weight + height + neck + abdomen + hip + thigh + bicep + forearm +
-wrist, data= bodyfat_selected)**
+wrist, data = bodyfat_selected)**
+
+### Model Validation
+
+Since the lasso method incurs a different model, so we will adopt model
+validation to choose the better model. First, use 5-fold validation and
+create the training sets.
+
+``` r
+train = trainControl(method = "cv", number = 5)
+```
+
+Then, fit the lasso model.
+
+``` r
+model_lasso = train(bodyfat_brozek ~ age + weight + height + neck + abdomen + hip + thigh + bicep + forearm + wrist, 
+                    data = bodyfat_selected,
+                    trControl = train,
+                    method = "lm",
+                    na.action = na.pass)
+
+model_lasso$finalModel
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = .outcome ~ ., data = dat)
+    ## 
+    ## Coefficients:
+    ## (Intercept)          age       weight       height         neck      abdomen  
+    ##   -17.33529      0.05704     -0.08407     -0.03616     -0.46442      0.87175  
+    ##         hip        thigh        bicep      forearm        wrist  
+    ##    -0.18037      0.25097      0.14538      0.42760     -1.40328
+
+``` r
+print(model_lasso)
+```
+
+    ## Linear Regression 
+    ## 
+    ## 252 samples
+    ##  10 predictor
+    ## 
+    ## No pre-processing
+    ## Resampling: Cross-Validated (5 fold) 
+    ## Summary of sample sizes: 203, 201, 201, 201, 202 
+    ## Resampling results:
+    ## 
+    ##   RMSE      Rsquared   MAE     
+    ##   4.025712  0.7345171  3.270656
+    ## 
+    ## Tuning parameter 'intercept' was held constant at a value of TRUE
+
+RMSE for model_lasso is 4.077981; Rsquared is 0.7296759; MAE is
+3.329993. Now, fit the test_based model.
+
+``` r
+model_test = train(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, 
+                    data = bodyfat_selected,
+                    trControl = train,
+                    method = "lm",
+                    na.action = na.pass)
+
+model_test$finalModel
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = .outcome ~ ., data = dat)
+    ## 
+    ## Coefficients:
+    ## (Intercept)          age       weight         neck      abdomen          hip  
+    ##   -20.06213      0.05922     -0.08414     -0.43189      0.87721     -0.18641  
+    ##       thigh      forearm        wrist  
+    ##     0.28644      0.48255     -1.40487
+
+``` r
+print(model_test)
+```
+
+    ## Linear Regression 
+    ## 
+    ## 252 samples
+    ##   8 predictor
+    ## 
+    ## No pre-processing
+    ## Resampling: Cross-Validated (5 fold) 
+    ## Summary of sample sizes: 203, 202, 201, 200, 202 
+    ## Resampling results:
+    ## 
+    ##   RMSE      Rsquared  MAE     
+    ##   4.024887  0.738934  3.287117
+    ## 
+    ## Tuning parameter 'intercept' was held constant at a value of TRUE
+
+RMSE for model_test is 4.078487; Rsquared is 0.7310717; MAE is 3.340266
+Since the RMSE and MAE are slightly smaller in the lasso model, we would
+slightly favor the lasso model. However, considering the principle of
+parsimony, we will run ANOVA to further compare the two models.
+
+### ANOVA for MLR
+
+``` r
+model_small = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, 
+                    data = bodyfat_selected)
+model_large = lm(bodyfat_brozek ~ age + weight + height + neck + abdomen + hip + thigh + bicep + forearm + wrist, data = bodyfat_selected)
+
+anova(model_small,model_large)
+```
+
+    ## Analysis of Variance Table
+    ## 
+    ## Model 1: bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + 
+    ##     forearm + wrist
+    ## Model 2: bodyfat_brozek ~ age + weight + height + neck + abdomen + hip + 
+    ##     thigh + bicep + forearm + wrist
+    ##   Res.Df    RSS Df Sum of Sq      F Pr(>F)
+    ## 1    243 3820.0                           
+    ## 2    241 3804.2  2    15.833 0.5015 0.6062
+
+F = 0.5015, p_value = 0.6062, we fail to reject H0 and conclude that the
+larger model is not superior. Now, according to the principle of
+parsimony, we will choose the small model.
+
+``` r
+model_final = model_small
+summary(model_final)
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + 
+    ##     hip + thigh + forearm + wrist, data = bodyfat_selected)
+    ## 
+    ## Residuals:
+    ##      Min       1Q   Median       3Q      Max 
+    ## -10.0574  -2.7411  -0.1912   2.6929   9.4977 
+    ## 
+    ## Coefficients:
+    ##              Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept) -20.06213   10.84654  -1.850  0.06558 .  
+    ## age           0.05922    0.02850   2.078  0.03876 *  
+    ## weight       -0.08414    0.03695  -2.277  0.02366 *  
+    ## neck         -0.43189    0.20799  -2.077  0.03889 *  
+    ## abdomen       0.87721    0.06661  13.170  < 2e-16 ***
+    ## hip          -0.18641    0.12821  -1.454  0.14727    
+    ## thigh         0.28644    0.11949   2.397  0.01727 *  
+    ## forearm       0.48255    0.17251   2.797  0.00557 ** 
+    ## wrist        -1.40487    0.47167  -2.978  0.00319 ** 
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 3.965 on 243 degrees of freedom
+    ## Multiple R-squared:  0.7467, Adjusted R-squared:  0.7383 
+    ## F-statistic: 89.53 on 8 and 243 DF,  p-value: < 2.2e-16
+
+## Model Diagnostics
+
+#### Residual vs Fitted & QQ Plots
+
+Residual vs Fitted plot
+
+``` r
+plot(model_final, which = 1)
+```
+
+![](final-project_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
+Heteroscedasticity is not detected.
+
+QQ plot
+
+``` r
+plot(model_final, which = 2)
+```
+
+![](final-project_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
+Residuals appear to be normal. No transformations needed.
+
+#### Checking to Outliers and Influential Points
+
+Residuals vs Leverage plot
+
+``` r
+plot(model_final, which = 4)
+```
+
+![](final-project_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
+remove influential points and fit model without influential points
+
+``` r
+bodyfat_out = bodyfat_selected[-c(39,175,216),]
+
+without = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, 
+                    data = bodyfat_out)
+summary(without)
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + 
+    ##     hip + thigh + forearm + wrist, data = bodyfat_out)
+    ## 
+    ## Residuals:
+    ##    Min     1Q Median     3Q    Max 
+    ## -9.914 -2.672 -0.292  2.732  9.647 
+    ## 
+    ## Coefficients:
+    ##              Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept) -19.89545   10.79552  -1.843  0.06657 .  
+    ## age           0.07180    0.02874   2.498  0.01315 *  
+    ## weight       -0.06634    0.03712  -1.787  0.07516 .  
+    ## neck         -0.38057    0.21193  -1.796  0.07379 .  
+    ## abdomen       0.82593    0.06857  12.045  < 2e-16 ***
+    ## hip          -0.15267    0.13046  -1.170  0.24305    
+    ## thigh         0.29204    0.12021   2.429  0.01586 *  
+    ## forearm       0.41804    0.20776   2.012  0.04533 *  
+    ## wrist        -1.56783    0.48022  -3.265  0.00126 ** 
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 3.924 on 240 degrees of freedom
+    ## Multiple R-squared:  0.7385, Adjusted R-squared:  0.7298 
+    ## F-statistic: 84.72 on 8 and 240 DF,  p-value: < 2.2e-16
+
+check without diagnostics
+
+``` r
+plot(without)
+```
+
+![](final-project_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->![](final-project_files/figure-gfm/unnamed-chunk-26-2.png)<!-- -->![](final-project_files/figure-gfm/unnamed-chunk-26-3.png)<!-- -->![](final-project_files/figure-gfm/unnamed-chunk-26-4.png)<!-- -->
+
+#### Assessing Multicollinearity

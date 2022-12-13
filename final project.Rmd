@@ -12,7 +12,7 @@ library(ggplot2)
 library(leaps)
 library(glmnet)
 library(caret)
-
+library(modelr)
 set.seed(1)
 ```
 
@@ -180,6 +180,42 @@ anova(model_small,model_large)
 F = 0.5015, p_value = 0.6062, we fail to reject H0 and conclude that the larger model is not superior. Now, according to the principle of parsimony, we will choose the small model.
 ```{r}
 model_final = model_small
+summary(model_final)
 ```
 
 ## Model Diagnostics ##
+
+#### Residual vs Fitted & QQ Plots ####
+Residual vs Fitted plot
+```{r}
+plot(model_final, which = 1)
+```
+Heteroscedasticity is not detected.
+
+QQ plot
+```{r}
+plot(model_final, which = 2)
+```
+Residuals appear to be normal.
+No transformations needed.
+
+#### Checking to Outliers and Influential Points ####
+Residuals vs Leverage plot
+```{r}
+plot(model_final, which = 4)
+```
+remove influential points and fit model without influential points
+```{r}
+bodyfat_out = bodyfat_selected[-c(39,175,216),]
+
+without = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, 
+                    data = bodyfat_out)
+summary(without)
+```
+check without diagnostics
+```{r}
+plot(without)
+```
+
+#### Assessing Multicollinearity ####
+
