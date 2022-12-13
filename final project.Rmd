@@ -35,13 +35,10 @@ ggplot(Body_df, aes(x = bodyfat_brozek)) +
 
 ```{r}
 colnames = colnames(Body_df)
-<<<<<<< HEAD
 par(mfrow = c(5,3))
-for (i in 5:17){
-=======
+
 
 for (i in 5:17) {
->>>>>>> 88c4676d48de3958a596a44d85f9f0c0a6174079
   plot = 
 ggplot(Body_df, aes_string(x = colnames[i])) + 
  geom_histogram(aes(y = ..density..), color = "white", fill = "blue",binwidth = 1) + 
@@ -53,12 +50,8 @@ ggplot(Body_df, aes_string(x = colnames[i])) +
 ```
 
 ```{r,message = FALSE, warning = FALSE}
-<<<<<<< HEAD
 par(mfrow = c(5,3))
-for (i in 5:17){
-=======
 for (i in 5:17) {
->>>>>>> 88c4676d48de3958a596a44d85f9f0c0a6174079
   plot = 
   Body_df %>% 
     ggplot(aes_string(x = colnames[i], y = "bodyfat_brozek")) + geom_point() + geom_smooth(method = 'lm', se = TRUE, color = 'red') +
@@ -151,7 +144,6 @@ coef(lasso_fit)
 The final model obtained from LASSO is
 __lm(formula =bodyfat_brozek ~ age + weight + height + neck + abdomen + hip + thigh + bicep + forearm + wrist, data = bodyfat_selected)__
 
-<<<<<<< HEAD
 #### Model choose #### 
 Stepwise selection and criterion test both indicate the same model. Though LASSO included height and bicep, the model is still similar. Thus, we would choose the final model as:
 ```{r}
@@ -175,7 +167,6 @@ model_lasso = train(bodyfat_brozek ~ age + weight + height + neck + abdomen + hi
                     trControl = train,
                     method = "lm",
                     na.action = na.pass)
->>>>>>> 88c4676d48de3958a596a44d85f9f0c0a6174079
 
 model_lasso$finalModel
 ```
@@ -214,6 +205,29 @@ F = 0.5015, p_value = 0.6062, we fail to reject H0 and conclude that the larger 
 model_final = model_small
 summary(model_final)
 ```
+
+## Interaction ##
+
+```{r}
+body_mod_select = bodyfat_selected %>%
+  select(-height, -chest, -knee, -ankle, -bicep)
+corrplot(cor(body_mod_select), type = "upper", diag = FALSE)
+```
+We can find that the correlation of the variables left are strong between each other, except age. 
+Let's check their interactions.
+```{r}
+lm.fit2 = lm(bodyfat_brozek ~ (age + weight + neck + abdomen + hip + thigh + forearm + wrist)^2, 
+             data = bodyfat_selected)
+table = anova(lm.fit2)
+
+inter_group = table %>%
+  filter(`Pr(>F)` < 0.05)
+```
+From the table, we found that only the weight:neck and neck: abdomen's interaction are statistically significant. Thus, there two interactive groups would be included in the model. 
+
+The improved model with interaction between significant associated predictors showed to be:
+__model_3 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist + weight*neck + neck*abdomen__, data = bodyfat_selected)
+
 
 ## Model Diagnostics ##
 
