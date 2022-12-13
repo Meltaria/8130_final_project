@@ -226,7 +226,11 @@ inter_group = table %>%
 From the table, we found that only the weight:neck and neck: abdomen's interaction are statistically significant. Thus, there two interactive groups would be included in the model. 
 
 The improved model with interaction between significant associated predictors showed to be:
-__model_3 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist + weight*neck + neck*abdomen__, data = bodyfat_selected)
+__model_3 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist + weight:neck + neck:abdomen, data = bodyfat_selected)__
+
+```{r}
+model_final = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist + weight*neck + neck*abdomen, data = bodyfat_selected)
+```
 
 
 ## Model Diagnostics ##
