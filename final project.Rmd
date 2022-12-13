@@ -23,33 +23,33 @@ summary(Body_df)
 
 
 ```{r}
-ggplot(Body_df, aes(x=bodyfat_brozek)) + 
- geom_histogram(aes(y=..density..), color="white", fill="blue",binwidth = 1)+
- geom_density(alpha=.2)+
- labs(title="Distributions of body fat measured in Brozek method")
+ggplot(Body_df, aes(x = bodyfat_brozek)) + 
+ geom_histogram(aes(y = ..density..), color = "white", fill = "blue",binwidth = 1) +
+ geom_density(alpha = .2) +
+ labs(title = "Distributions of body fat measured in Brozek method")
 
 ```
 
 ```{r}
 colnames = colnames(Body_df)
 
-for (i in 5:17){
+for (i in 5:17) {
   plot = 
-ggplot(Body_df, aes_string(x=colnames[i])) + 
- geom_histogram(aes(y=..density..), color="white", fill="blue",binwidth = 1)+
- geom_density(alpha=.2)+
- labs(title=sprintf("Distributions of %s", colnames[i]) )
+ggplot(Body_df, aes_string(x = colnames[i])) + 
+ geom_histogram(aes(y = ..density..), color = "white", fill = "blue",binwidth = 1) + 
+ geom_density(alpha = .2) +
+ labs(title = sprintf("Distributions of %s", colnames[i]) )
   
   print(plot)
 }
 ```
 
 ```{r,message = FALSE, warning = FALSE}
-for (i in 5:17){
+for (i in 5:17) {
   plot = 
   Body_df %>% 
-    ggplot(aes_string(x = colnames[i], y = "bodyfat_brozek"))+geom_point()+geom_smooth(method = 'lm', se = TRUE, color = 'red')+
-    labs(title = sprintf("Scatter plot for body fat against %s", colnames[i]) )+
+    ggplot(aes_string(x = colnames[i], y = "bodyfat_brozek")) + geom_point() + geom_smooth(method = 'lm', se = TRUE, color = 'red') +
+    labs(title = sprintf("Scatter plot for body fat against %s", colnames[i]) ) +
     ylab("Body Fat (Brozek)")
   
   print(plot)
@@ -101,13 +101,13 @@ Then, let's try Tested Based Procedures
 "Cp test"
 ```{r}
 mat = as.matrix(bodyfat_selected)
-leaps(x = mat[,2:14], y =mat[,1], nbest = 1, method ="Cp")
+leaps(x = mat[,2:14], y = mat[,1], nbest = 1, method = "Cp")
 ```
 The smallest Cp value we got indicate that best model:
 __lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_selected)__
 
 ```{r}
-leaps(x = mat[,2:14], y =mat[,1], nbest = 1, method ="adjr2")
+leaps(x = mat[,2:14], y = mat[,1], nbest = 1, method = "adjr2")
 ```
 The largest adjusted R2 indicated the best subset to be:
 __lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data= bodyfat_selected)__
