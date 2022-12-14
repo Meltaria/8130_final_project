@@ -242,7 +242,7 @@ __model_2 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + fo
 
 ```{r}
 model_2 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist + weight*neck + neck*abdomen, data = bodyfat_selected)
-summary(model_final)
+summary(model_2)
 ```
 Here, we got two candidate model. 
 One without interactions: 
