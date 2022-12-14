@@ -15,6 +15,7 @@ library(glmnet)
 library(caret)
 library(modelr)
 library(gtsummary)
+library(interactions)
 set.seed(1)
 ```
 
@@ -23,6 +24,7 @@ Import data
 ```{r}
 Body_df = readxl::read_excel("data/body_density_data.xlsx")
 tbl_summary(Body_df)
+summary(Body_df)
 ```
 
 We chose fat density of Brozek's function as outcome
@@ -42,6 +44,18 @@ for (i in 5:17) {
 ggplot(Body_df, aes_string(x = colnames[i])) + 
  geom_histogram(aes(y = ..density..), color = "white", fill = "blue",binwidth = 1) + 
  geom_density(alpha = .2) +
+ labs(title = sprintf("Distributions of %s", colnames[i]) )
+  
+  print(plot)
+}
+```
+
+```{r}
+colnames = colnames(Body_df)
+for (i in 5:17) {
+  plot = 
+ggplot(Body_df, aes_string(y = colnames[i])) + 
+ geom_boxplot() + 
  labs(title = sprintf("Distributions of %s", colnames[i]) )
   
   print(plot)
@@ -202,6 +216,12 @@ summary(model)
 ```
 
 ## Interaction ##
+```{r}
+interact_plot(model, pred = age, modx = weight)
+```
+
+
+
 In the data exploration part, we can find that the correltaion between the varaibles are very significant. The predictors can interact with each other. Thus, let's check it again with our further selected data. 
 ```{r}
 body_mod_select = bodyfat_selected %>%
