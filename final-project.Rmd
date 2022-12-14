@@ -269,3 +269,26 @@ plot(model_2, which = 1)
 
 
 
+
+
+#### Residual vs Fitted & QQ Plots ####
+Residual vs Fitted plot
+```{r}
+plot(model_final, which = 1)
+```
+Heteroscedasticity is not detected.
+
+QQ plot
+```{r}
+plot(model_final, which = 2)
+```
+Residuals appear to be normal.
+No transformations needed.
+
+#### Checking to Outliers and Influential Points ####
+Residuals vs Leverage plot
+```{r}
+plot(model_final, which = 4)
+```
+Since the Cook's distances are all smaller than 0.025, according to rule of thumb, there are no influential points of concern. 
+
