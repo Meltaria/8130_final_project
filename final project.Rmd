@@ -22,6 +22,7 @@ library(performance)
 set.seed(1)
 ```
 
+## Data exploratory ##
 ### Distribution of Data ###
 Import data
 ```{r}
@@ -30,7 +31,7 @@ tbl_summary(Body_df)
 summary(Body_df)
 ```
 
-We chose fat density of Brozek's function as outcome
+We chose fat density of Brozek's function as outcome and here is the distribution of bodyfat_brozek
 ```{r}
 ggplot(Body_df, aes(x = bodyfat_brozek)) + 
  geom_histogram(aes(y = ..density..), color = "white", fill = "blue",binwidth = 1) +
@@ -39,7 +40,7 @@ ggplot(Body_df, aes(x = bodyfat_brozek)) +
 
 ```
 
-Here are the distribution of all the variables
+Here are the distribution of all the variables shown in histogram
 ```{r}
 colnames = colnames(Body_df)
 for (i in 5:17) {
@@ -53,6 +54,7 @@ ggplot(Body_df, aes_string(x = colnames[i])) +
 }
 ```
 
+Here are the distribution of all the variables shown in boxplot
 ```{r}
 colnames = colnames(Body_df)
 for (i in 5:17) {
@@ -64,9 +66,18 @@ ggplot(Body_df, aes_string(y = colnames[i])) +
   print(plot)
 }
 ```
+From the distribution plots of the variables, we can find that, all the variables are in normal distribution with very few outliers. Thus, no transformation may be requried. 
+
+Here, we clean the data 
+```{r}
+bodyfat_selected = 
+  Body_df %>% 
+  dplyr::select(-id,-bodyfat_siri,-body_density)
+```
 
 Here are the correlation between the bodyfat_brozek with the predictors 
-```{r,message = FALSE, warning = FALSE}
+```{r,message = FALSE, warning = FALSE} 
+# Building scatter plots
 for (i in 5:17) {
   plot = 
   Body_df %>% 
@@ -78,31 +89,29 @@ for (i in 5:17) {
 }
 ```
 
-Here, we clean the data 
 ```{r}
-bodyfat_selected = 
-  Body_df %>% 
-  dplyr::select(-id,-bodyfat_siri,-body_density)
-```
-
-Let's take a look on the interaction between the variables
-```{r}
+# Pair the variables
 pairs(bodyfat_selected)
 ```
-Correlat eplot
+
 ```{r}
+# Corrplot the variables
 corrplot(cor(bodyfat_selected), type = "upper", diag = FALSE)
 ```
 
+We can find that, most of the variables have linear correlation with others. It should be paid attention in later data analysis. 
 
-## Linear Regression ## 
+
+## Building models ## 
 All the variables are normal and required no transformation.
-Based the variables' we selected, let's firstly fit all them into a MLR model.
+As the outcome and predictors are all quantitative data, it would be not proper to fit the model in Logistic Regression or exponential function. Thus linear regression may be still the best choice for use to build the model. 
+
+Let's firstly build fit all the variables in a Multiple linear regression model. 
 ```{r}
 multifit = lm(bodyfat_brozek ~ ., data = bodyfat_selected)
 ```
 
-
+### Linear Regression ###
 #### Automatic Selection ####
 Backward Elmination
 ```{r}
@@ -162,11 +171,11 @@ coef(lasso_fit)
 The final model obtained from LASSO is
 __lm(formula =bodyfat_brozek ~ age + weight + height + neck + abdomen + hip + thigh + bicep + forearm + wrist, data = bodyfat_selected)__
 
-#### Model choose #### 
+### Model choose ### 
 Stepwise selection and criterion test both indicate the same model. Though LASSO included height and bicep, the model is still similar. Further process would be done to choose from the LASSO model: __lm(formula =bodyfat_brozek ~ age + weight + height + neck + abdomen + hip + thigh + bicep + forearm + wrist, data = bodyfat_selected)__ and the small model  __lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data= bodyfat_selected)__. 
 
 
-### Model Validation ###
+#### Model Validation ####
 Since the lasso method incurs a different model, so we will adopt model validation to choose the better model.
 First, use 5-fold validation and create the training sets.
 ```{r}
@@ -174,6 +183,7 @@ train = trainControl(method = "cv", number = 5)
 ```
 Then, fit the lasso model.
 ```{r}
+set.seed(1)
 model_lasso = train(bodyfat_brozek ~ age + weight + height + neck + abdomen + hip + thigh + bicep + forearm + wrist, 
                     data = bodyfat_selected,
                     trControl = train,
@@ -181,14 +191,7 @@ model_lasso = train(bodyfat_brozek ~ age + weight + height + neck + abdomen + hi
                     na.action = na.pass)
 
 model_lasso$finalModel
-```
 
-```{r}
-print(model_lasso)
-```
-RMSE for model_lasso is 4.077981; Rsquared is 0.7296759; MAE is 3.329993.
-Now, fit the test_based model.
-```{r}
 model_test = train(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, 
                     data = bodyfat_selected,
                     trControl = train,
@@ -196,15 +199,15 @@ model_test = train(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh 
                     na.action = na.pass)
 
 model_test$finalModel
-```
 
-```{r}
+print(model_lasso)
 print(model_test)
 ```
-RMSE for model_test is 4.078487; Rsquared is 0.7310717; MAE is 3.340266
-Since the RMSE and MAE are slightly smaller in the lasso model, we would slightly favor the lasso model. However, considering the principle of parsimony, we will run ANOVA to further compare the two models.
+The RMSE obtained from model_lasso is 4.077981 and that of model_test is 4.078487. The MAE obtained from model_lasso is 3.329993 and that of model_test is 3.340266.
 
-### ANOVA for MLR ###
+As the RMSE and MAE are slightly smaller in LASSO model, it is more preferred. However, considering the principle of parsimony, we will run ANOVA to further compare the two models.
+
+#### ANOVA for MLR ####
 ```{r}
 model_small = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, 
                     data = bodyfat_selected)
@@ -219,7 +222,7 @@ summary(model_1)
 ```
 
 ## Interaction ##
-In the data exploration part, we can find that the correltaion between the varaibles are very significant. The predictors can interact with each other. Thus, let's check it again with our further selected data. 
+In the data exploration part, we found that the correlation between the variables are very significant. The predictors can interact with each other. Thus, let's check it again with our further selected data. 
 ```{r}
 body_mod_select = bodyfat_selected %>%
   dplyr::select(bodyfat_brozek, age, weight, neck, abdomen, hip, thigh, forearm, wrist)
@@ -235,16 +238,20 @@ table = anova(lm.fit2)
 
 inter_group = table %>%
   filter(`Pr(>F)` < 0.05)
+
+inter_group
 ```
 From the table, based on the pvalue smaller than 0.05. We found that only the weight:neck and neck: abdomen's interaction are statistically significant. Thus, there two interactive groups would be included in the model. 
 
-The improved model with interaction between significant associated predictors showed to be:
+The model with interaction between significant associated predictors is:
 __model_2 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist + weight:neck + neck:abdomen, data = bodyfat_selected)__
 
 ```{r}
 model_2 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist + weight*neck + neck*abdomen, data = bodyfat_selected)
 summary(model_2)
 ```
+
+
 Here, we got two candidate model. 
 One without interactions: 
 __model_1 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_selected)__
@@ -260,14 +267,14 @@ __model_2 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + fo
 plot(model_1, which = 1)  
 plot(model_2, which = 1)  
 ```
-We #204, #207 and #224 were observed. 
+Horizontal bands around 0 are formed, indicating no heteroscedasticity and outliers were detected. 
 
 ### Normal QQ plot ###
 ```{r}
 plot(model_1, which = 2) 
 plot(model_2, which = 2) 
 ```
-We observed #207 and #224 as outliers in both graphs. 
+Straight lines were observed, indicating the residuals are normal. 
 
 ### Outliers and Leverage ###
 residual vs leverage plot 
@@ -275,12 +282,12 @@ residual vs leverage plot
 plot(model_1, which = 4)  #39, #175, #216
 plot(model_2, which = 4)  #3, #216, #250 
 ```
+There were some influential outliers were detected. Further process of outliers are required. 
 
 Let's remove the influential points.
 ```{r}
 bodyfat_out = bodyfat_selected %>%
   filter(!row_number() %in% c(3, 39, 175, 216, 250))
-
 ```
 
 Then, let's fit the model with and without influential points. 
@@ -319,6 +326,7 @@ Both plots without influential point showed to better than those with influentia
 corrplot(cor(bodyfat_out), type = "upper", diag = FALSE)
 ```
 Still, even after excluding the influential data, all the predictors, except age, are higly correlated. 
+
 Let's check the model without interactions terms.
 ```{r}
 check_collinearity(without1)
@@ -349,11 +357,10 @@ summary(model_2f)
 ## Cross validation ##
 Let's create RMSE distribution boxplot
 ```{r}
+set.seed(2)
 cv_df = crossv_mc(bodyfat_out, 100) %>%
   mutate(train = map(train, as_tibble),
-         test = map(test, as_tibble))
-
-cv_df = cv_df %>%
+         test = map(test, as_tibble)) %>%
   mutate(
     mod_1 = map(.x= train, ~lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist, data =.x)),
     mod_2 = map(.x = train, ~lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist + neck*abdomen, data =.x))
@@ -363,9 +370,7 @@ cv_df = cv_df %>%
     rmse_2 = map2_dbl(.x = mod_2, .y = test, ~rmse(model = .x))
   )
 
-cv_df
-
-cv_df %>%
+rmse_boxplot = cv_df %>%
   dplyr::select(rmse_1, rmse_2) %>%
   pivot_longer(rmse_1:rmse_2,
                names_to = "model",
@@ -373,25 +378,27 @@ cv_df %>%
                names_prefix = "remse_")%>%
   ggplot(aes(x = model, y =rmse)) + geom_boxplot() +
   labs(x= "Model", y = "RMSE")
+
+rmse_boxplot
 ```
 By plotting the RMSE distribution of two model, we can find that the interaction model has the lower RMSE, which is more prefered.  
 
 ```{r}
+set.seed(2)
 train = trainControl(method = "cv", number = 10)
 
 mod_1_cv = train(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist, data = bodyfat_out, trControl = train, method = "lm", na.action = na.pass)
 
 mod_2_cv = train(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist + neck*abdomen, data = bodyfat_out, trControl = train, method = "lm", na.action = na.pass)
-```
 
-```{r}
 bind_rows(
   as_tibble(mod_1_cv$results),
   as_tibble(mod_2_cv$results)
 ) %>%
   knitr:: kable(digit = 3)
 ```
-Model 2's RMSE(3.985) is slightly smaller than that of model 1(3.995). 
+
+Model 2's RMSE(3.966) is slightly smaller than that of model 1(3.979). 
 
 Finally, based on the data analysis, the final model we would choose to is the model 2 with interactions terms. 
 
