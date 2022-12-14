@@ -18,6 +18,7 @@ library(gtsummary)
 library(interactions)
 library(caret)
 library(MASS)
+library(performance)
 set.seed(1)
 ```
 
@@ -253,17 +254,156 @@ __model_2 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + fo
 
 
 
-### Boxcox Transformation
-
-
-
-
 ## Model Diagnostics ##
 ### Rediduals ###
 ```{r}
-plot(model_1, which = 1)
-plot(model_2, which = 1)
+plot(model_1, which = 1)  
+plot(model_2, which = 1)  
 ```
+We #204, #207 and #224 were observed. 
+
+### Normal QQ plot ###
+```{r}
+plot(model_1, which = 2) 
+plot(model_2, which = 2) 
+```
+We observed #207 and #224 as outliers in both graphs. 
+
+### Outliers and Leverage ###
+residual vs leverage plot 
+```{r}
+plot(model_1, which = 4)  #39, #175, #216
+plot(model_2, which = 4)  #3, #216, #250 
+```
+
+Let's remove the influential points.
+```{r}
+bodyfat_out = bodyfat_selected %>%
+  filter(!row_number() %in% c(3, 39, 175, 216, 250))
+
+```
+
+Then, let's fit the model with and without influential points. 
+__Check model_1__
+```{r}
+with1 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_selected)
+
+without1 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_out)
+
+summary(with1)
+summary(without1)
+```
+check without1 diagnostics
+```{r}
+plot(without1)
+```
+
+check model 2
+```{r}
+with2 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist + weight*neck + neck*abdomen, data = bodyfat_selected)
+
+without2 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist + weight*neck + neck*abdomen, data = bodyfat_out)
+
+summary(with2)
+summary(without2)
+```
+check without2 diagnostics
+```{r}
+plot(without2)
+```
+
+Both plots without influential point showed to better than those with influential points. 
+
+### Colinearility
+```{r}
+corrplot(cor(bodyfat_out), type = "upper", diag = FALSE)
+```
+Still, even after excluding the influential data, all the predictors, except age, are higly correlated. 
+Let's check the model without interactions terms.
+```{r}
+check_collinearity(without1)
+```
+It's found that, there VIF value is very high for weight, hip and abdomen terms, indicating their strong correlation with other variables. 
+
+Let's remove the weight term with highest VIF. 
+```{r}
+without1_new = lm(bodyfat_brozek ~ age + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_out)
+check_collinearity(without1_new)
+```
+The correlation between the variables is lowered, but we still have hip(8.61), thigh(5.64) and abdomen(6.26) with high VIF. Then we remove the hip term.  
+```{r}
+without2_new = lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist, data = bodyfat_out)
+check_collinearity(without2_new)
+```
+After removing these two variables, we have got all predictors with low VIF. 
+
+The final model we will have with and without interaction would be. 
+```{r}
+model_1f = lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist, data = bodyfat_out)
+summary(model_1f)
+
+model_2f = lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist + neck*abdomen, data = bodyfat_out)
+summary(model_2f)
+```
+
+## Cross validation ##
+Let's create RMSE distribution boxplot
+```{r}
+cv_df = crossv_mc(bodyfat_out, 100) %>%
+  mutate(train = map(train, as_tibble),
+         test = map(test, as_tibble))
+
+cv_df = cv_df %>%
+  mutate(
+    mod_1 = map(.x= train, ~lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist, data =.x)),
+    mod_2 = map(.x = train, ~lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist + neck*abdomen, data =.x))
+  ) %>%
+  mutate(
+    rmse_1 = map2_dbl(.x = mod_1, .y = test, ~rmse(model = .x)),
+    rmse_2 = map2_dbl(.x = mod_2, .y = test, ~rmse(model = .x))
+  )
+
+cv_df
+
+cv_df %>%
+  dplyr::select(rmse_1, rmse_2) %>%
+  pivot_longer(rmse_1:rmse_2,
+               names_to = "model",
+               values_to = "rmse",
+               names_prefix = "remse_")%>%
+  ggplot(aes(x = model, y =rmse)) + geom_boxplot() +
+  labs(x= "Model", y = "RMSE")
+```
+By plotting the RMSE distribution of two model, we can find that the interaction model has the lower RMSE, which is more prefered.  
+
+```{r}
+train = trainControl(method = "cv", number = 10)
+
+mod_1_cv = train(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist, data = bodyfat_out, trControl = train, method = "lm", na.action = na.pass)
+
+mod_2_cv = train(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist + neck*abdomen, data = bodyfat_out, trControl = train, method = "lm", na.action = na.pass)
+```
+
+```{r}
+bind_rows(
+  as_tibble(mod_1_cv$results),
+  as_tibble(mod_2_cv$results)
+) %>%
+  knitr:: kable(digit = 3)
+```
+Model 2's RMSE(3.985) is slightly smaller than that of model 1(3.995). 
+
+Finally, based on the data analysis, the final model we would choose to is the model 2 with interactions terms. 
+
+The final model would be
+```{r}
+final_model = lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist + neck*abdomen, data = bodyfat_out)
+summary(final_model)
+broom::tidy(summary(final_model))
+```
+__bodyfat_brozek = -57.2 + 0.104*age + 0.774*neck + 1.19*abdomen + 0.102*thigh + 0.339*forearm -2.1*wrist - 0.013*neck:abdomen__
+
+
 
 
 
