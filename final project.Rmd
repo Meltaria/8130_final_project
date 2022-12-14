@@ -270,18 +270,5 @@ Residuals vs Leverage plot
 ```{r}
 plot(model_final, which = 4)
 ```
-remove influential points and fit model without influential points
-```{r}
-bodyfat_out = bodyfat_selected[-c(207, 204, 224),]
-
-without = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, 
-                    data = bodyfat_out)
-summary(without)
-```
-check without diagnostics
-```{r}
-plot(without)
-```
-
-#### Assessing Multicollinearity ####
+Since the Cook's distances are all smaller than 0.025, according to rule of thumb, there are no influential points of concern. 
 
