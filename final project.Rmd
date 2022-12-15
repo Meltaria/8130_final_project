@@ -103,8 +103,8 @@ We can find that, most of the variables have linear correlation with others. It 
 
 
 ## Building models ## 
-All the variables are normal and required no transformation.
-As the outcome and predictors are all quantitative data, it would be not proper to fit the model in Logistic Regression or exponential function. Thus linear regression may be still the best choice for use to build the model. 
+All the variables are normally distributed and required no transformation.
+As the outcome and predictors are all quantitative data, it would be not proper to fit the model in Logistic Regression or exponential regression. Thus linear regression may be still the best choice for use to build the model. 
 
 Let's firstly build fit all the variables in a Multiple linear regression model. 
 ```{r}
@@ -262,7 +262,7 @@ __model_2 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + fo
 
 
 ## Model Diagnostics ##
-### Rediduals ###
+### Rediduals vs Fitted plot###
 ```{r}
 plot(model_1, which = 1)  
 plot(model_2, which = 1)  
@@ -276,8 +276,15 @@ plot(model_2, which = 2)
 ```
 Straight lines were observed, indicating the residuals are normal. 
 
+### Scale-Location plot ###
+```{r}
+plot(model_1, which = 3) 
+plot(model_2, which = 3) 
+```
+In each plot, the points were equally distributed with a horizontal line. 
+
 ### Outliers and Leverage ###
-residual vs leverage plot 
+Cook's distance plot. 
 ```{r}
 plot(model_1, which = 4)  #39, #175, #216
 plot(model_2, which = 4)  #3, #216, #250 
