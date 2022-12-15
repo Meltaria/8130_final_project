@@ -46,7 +46,7 @@ colnames = colnames(Body_df)
 for (i in 5:17) {
   plot = 
 ggplot(Body_df, aes_string(x = colnames[i])) + 
- geom_histogram(aes(y = ..density..), color = "white", fill = "blue",binwidth = 1) + 
+ geom_histogram(aes(y = ..density..), color = "white", fill = "light blue",binwidth = 1) + 
  geom_density(alpha = .2) +
  labs(title = sprintf("Distributions of %s", colnames[i]) )
   
