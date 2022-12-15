@@ -34,7 +34,7 @@ summary(Body_df)
 We chose fat density of Brozek's function as outcome and here is the distribution of bodyfat_brozek
 ```{r}
 ggplot(Body_df, aes(x = bodyfat_brozek)) + 
- geom_histogram(aes(y = ..density..), color = "white", fill = "blue",binwidth = 1) +
+ geom_histogram(aes(y = ..density..), color = "white", fill = "light blue",binwidth = 1) +
  geom_density(alpha = .2) +
  labs(title = "Distributions of body fat measured in Brozek method")
 
