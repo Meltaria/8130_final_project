@@ -330,7 +330,7 @@ Both plots without influential point showed to better than those with influentia
 
 ### Colinearility
 ```{r}
-corrplot(cor(bodyfat_out), type = "upper", diag = FALSE)
+corrplot(cor(bodyfat_out_1), type = "upper", diag = FALSE)
 ```
 Still, even after excluding the influential data, all the predictors, except age, are higly correlated. 
 
@@ -340,24 +340,24 @@ check_collinearity(without1)
 ```
 It's found that, there VIF value is very high for weight, hip and abdomen terms, indicating their strong correlation with other variables. 
 
-Let's remove the weight term with highest VIF. 
+Let's remove the weight term with highest VIF(15.99). 
 ```{r}
-without1_new = lm(bodyfat_brozek ~ age + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_out)
+without1_new = lm(bodyfat_brozek ~ age + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_out_1)
 check_collinearity(without1_new)
 ```
 The correlation between the variables is lowered, but we still have hip(8.61), thigh(5.64) and abdomen(6.26) with high VIF. Then we remove the hip term.  
 ```{r}
-without2_new = lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist, data = bodyfat_out)
-check_collinearity(without2_new)
+without1_new_2 = lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist, data = bodyfat_out_1)
+check_collinearity(without1_new_2)
 ```
 After removing these two variables, we have got all predictors with low VIF. 
 
 The final model we will have with and without interaction would be. 
 ```{r}
-model_1f = lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist, data = bodyfat_out)
+model_1f = lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist, data = bodyfat_out_1)
 summary(model_1f)
 
-model_2f = lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist + neck*abdomen, data = bodyfat_out)
+model_2f = lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist + neck*abdomen, data = bodyfat_out_2)
 summary(model_2f)
 ```
 
@@ -365,7 +365,7 @@ summary(model_2f)
 Let's create RMSE distribution boxplot
 ```{r}
 set.seed(2)
-cv_df = crossv_mc(bodyfat_out, 100) %>%
+cv_df = crossv_mc(bodyfat_selected, 100) %>%
   mutate(train = map(train, as_tibble),
          test = map(test, as_tibble)) %>%
   mutate(
@@ -394,31 +394,28 @@ By plotting the RMSE distribution of two model, we can find that the interaction
 set.seed(2)
 train = trainControl(method = "cv", number = 10)
 
-mod_1_cv = train(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist, data = bodyfat_out, trControl = train, method = "lm", na.action = na.pass)
+mod_1_cv = train(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist, data = bodyfat_out_1, trControl = train, method = "lm", na.action = na.pass)
 
-mod_2_cv = train(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist + neck*abdomen, data = bodyfat_out, trControl = train, method = "lm", na.action = na.pass)
+mod_2_cv = train(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist + neck*abdomen, data = bodyfat_out_2, trControl = train, method = "lm", na.action = na.pass)
 
 bind_rows(
   as_tibble(mod_1_cv$results),
   as_tibble(mod_2_cv$results)
 ) %>%
-  knitr:: kable(digit = 3)
+  knitr::kable(digit = 3)
 ```
 
-Model 2's RMSE(3.966) is slightly smaller than that of model 1(3.979). 
+Model 2's RMSE(3.945) is slightly smaller than that of model 1(4.009). 
 
 Finally, based on the data analysis, the final model we would choose to is the model 2 with interactions terms. 
 
 The final model would be
 ```{r}
-final_model = lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist + neck*abdomen, data = bodyfat_out)
+final_model = lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist + neck*abdomen, data = bodyfat_out_2)
 summary(final_model)
 broom::tidy(summary(final_model))
 ```
-__bodyfat_brozek = -57.2 + 0.104*age + 0.774*neck + 1.19*abdomen + 0.102*thigh + 0.339*forearm -2.1*wrist - 0.013*neck:abdomen__
-
-
-
+__bodyfat_brozek = -78.5 + 0.0997*age + 1.33*neck + 1.43*abdomen + 0.0955*thigh + 0.290*forearm -2.02*wrist - 0.0192*neck:abdomen__
 
 
 
