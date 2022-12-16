@@ -329,7 +329,7 @@ plot(without2)
 
 Both plots without influential point showed to better than those with influential points. 
 
-### Colinearility
+### Assessing Multicollinearility
 ```{r}
 corrplot(cor(bodyfat_out_1), type = "upper", diag = FALSE)
 ```
