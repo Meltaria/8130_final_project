@@ -127,7 +127,7 @@ intercept_only = lm(bodyfat_brozek ~ 1, data = bodyfat_selected)
 step(intercept_only, direction = "forward", scope = formula(multifit))
 ```
 The model obtained from Forward Selection is 
-__lm(formula = bodyfat_brozek ~ abdomen + weight + wrist + forearm + neck + age + thigh + hip, data = bodyfat_selected)__
+__lm(formula = bodyfat_brozek ~ abdomen + weight + wrist + forearm + neck + bicep + age + thigh, data = bodyfat_selected)__
 
 Stepwise Selection
 ```{r}
