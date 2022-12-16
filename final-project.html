@@ -2231,18 +2231,78 @@ summary(final_model)</code></pre>
 ## Residual standard error: 3.982 on 240 degrees of freedom
 ## Multiple R-squared:  0.7398, Adjusted R-squared:  0.7322 
 ## F-statistic: 97.46 on 7 and 240 DF,  p-value: &lt; 2.2e-16</code></pre>
-<pre class="r"><code>broom::tidy(summary(final_model))</code></pre>
-<pre><code>## # A tibble: 8 × 5
-##   term         estimate std.error statistic       p.value
-##   &lt;chr&gt;           &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;         &lt;dbl&gt;
-## 1 (Intercept)  -72.7     20.9        -3.48  0.000600     
-## 2 age            0.0903   0.0272      3.32  0.00104      
-## 3 neck           1.23     0.581       2.11  0.0361       
-## 4 abdomen        1.39     0.223       6.24  0.00000000200
-## 5 thigh          0.0627   0.0997      0.629 0.530        
-## 6 forearm        0.300    0.180       1.66  0.0973       
-## 7 wrist         -2.05     0.437      -4.70  0.00000432   
-## 8 neck:abdomen  -0.0178   0.00554    -3.21  0.00151</code></pre>
+<pre class="r"><code>table_2= data.frame(broom::tidy(summary(final_model)))
+table_2 %&gt;%
+  knitr::kable(digit = 3)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">term</th>
+<th align="right">estimate</th>
+<th align="right">std.error</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(Intercept)</td>
+<td align="right">-72.678</td>
+<td align="right">20.897</td>
+<td align="right">-3.478</td>
+<td align="right">0.001</td>
+</tr>
+<tr class="even">
+<td align="left">age</td>
+<td align="right">0.090</td>
+<td align="right">0.027</td>
+<td align="right">3.320</td>
+<td align="right">0.001</td>
+</tr>
+<tr class="odd">
+<td align="left">neck</td>
+<td align="right">1.225</td>
+<td align="right">0.581</td>
+<td align="right">2.108</td>
+<td align="right">0.036</td>
+</tr>
+<tr class="even">
+<td align="left">abdomen</td>
+<td align="right">1.394</td>
+<td align="right">0.223</td>
+<td align="right">6.237</td>
+<td align="right">0.000</td>
+</tr>
+<tr class="odd">
+<td align="left">thigh</td>
+<td align="right">0.063</td>
+<td align="right">0.100</td>
+<td align="right">0.629</td>
+<td align="right">0.530</td>
+</tr>
+<tr class="even">
+<td align="left">forearm</td>
+<td align="right">0.300</td>
+<td align="right">0.180</td>
+<td align="right">1.665</td>
+<td align="right">0.097</td>
+</tr>
+<tr class="odd">
+<td align="left">wrist</td>
+<td align="right">-2.054</td>
+<td align="right">0.437</td>
+<td align="right">-4.704</td>
+<td align="right">0.000</td>
+</tr>
+<tr class="even">
+<td align="left">neck:abdomen</td>
+<td align="right">-0.018</td>
+<td align="right">0.006</td>
+<td align="right">-3.209</td>
+<td align="right">0.002</td>
+</tr>
+</tbody>
+</table>
 <p>__bodyfat_brozek = -72.7 + 0.0903<em>age + 1.23</em>neck +
 1.39<em>abdomen + 0.0627</em>thigh + 0.300<em>forearm -2.05</em>wrist -
 0.0178*neck:abdomen__</p>
