@@ -142,7 +142,42 @@ step(multifit, direction = "both")
 The stepwise selection from both side get us the model to be
 __lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_selected)__
 
-From the procedures we done above, the fianl model was agreed to be __lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_selected)__
+The model obtained by Forward selections is included bicep than from that obtained in Backward elimination and Stepwise selection. 
+
+Model validation
+```{r}
+set.seed(1)
+train = trainControl(method = "cv", number = 5)
+model_for = train(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + bicep + forearm + wrist, data = bodyfat_selected,
+                    trControl = train,
+                    method = "lm",
+                    na.action = na.pass)
+
+model_for$finalModel
+
+model_back = train(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, 
+                    data = bodyfat_selected,
+                    trControl = train,
+                    method = "lm",
+                    na.action = na.pass)
+
+model_back$finalModel
+
+print(model_for)
+print(model_back)
+```
+The RMSE of model_for(4.025) is slightly smaller than that of model_back(4.075). Model_for is more preferred. 
+However, considering the principle of parsimony, we will run ANOVA to further compare the two models.
+
+```{r}
+model_for = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + bicep + forearm + wrist, data = bodyfat_selected)
+
+model_back = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_selected)
+anova(model_back, model_for)
+```
+F = 1.103, p_value = 0.2947, we fail to reject H0 and conclude that the model_for is not superior. Now, according to the principle of parsimony, we will choose the model_for.
+
+From the procedures we done above, the final model was agreed to be __lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_selected)__
 
 
 #### Test Based Procedures ####
@@ -150,16 +185,22 @@ Then, let's try Tested Based Procedures
 "Cp test"
 ```{r}
 mat = as.matrix(bodyfat_selected)
-leaps(x = mat[,2:14], y = mat[,1], nbest = 1, method = "Cp")
+leaps(x = mat[,2:14], y = mat[,1], nbest = 2, method = "Cp")
 ```
+
 The smallest Cp value we got indicate that best model:
 __lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_selected)__
 
 ```{r}
-leaps(x = mat[,2:14], y = mat[,1], nbest = 1, method = "adjr2")
+leaps(x = mat[,2:14], y = mat[,1], nbest = 2, method = "adjr2")
 ```
 The largest adjusted R2 indicated the best subset to be:
-__lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data= bodyfat_selected)__
+__lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + bicep + forearm + wrist, data= bodyfat_selected)__
+
+The model obtained by the via Mallow's Cp and Ajusted R squares are slightly different. As the models obtained are the identical as what we obtained in Automatic selection, same result can be obtained via model validation.
+
+The model we chosen would be __lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_selected)__
+
 
 #### LASSO ####
 Let's use corss validation to choose lambda
@@ -176,10 +217,10 @@ lasso_fit = glmnet::glmnet(as.matrix(bodyfat_selected[2:14]), bodyfat_selected$b
 coef(lasso_fit)
 ```
 The final model obtained from LASSO is
-__lm(formula =bodyfat_brozek ~ age + weight + height + neck + abdomen + hip + thigh + bicep + forearm + wrist, data = bodyfat_selected)__
+__lm(formula =bodyfat_brozek ~ age + weight + height + neck + chest + abdomen + hip + thigh + ankle + bicep + forearm + wrist, data = bodyfat_selected)__
 
 ### Model choose ### 
-Stepwise selection and criterion test both indicate the same model. Though LASSO included height and bicep, the model is still similar. Further process would be done to choose from the LASSO model: __lm(formula =bodyfat_brozek ~ age + weight + height + neck + abdomen + hip + thigh + bicep + forearm + wrist, data = bodyfat_selected)__ and the small model  __lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data= bodyfat_selected)__. 
+Stepwise selection and criterion test both indicate the same model. The LASSO model includes more predictors. Further process would be done to choose from the LASSO model: __lm(formula =bodyfat_brozek ~ age + weight + height + neck + chest + abdomen + hip + thigh + ankle + bicep + forearm + wrist, data = bodyfat_selected)__ and the small model  __lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data= bodyfat_selected)__. 
 
 
 #### Model Validation ####
@@ -191,7 +232,7 @@ train = trainControl(method = "cv", number = 5)
 Then, fit the lasso model.
 ```{r}
 set.seed(1)
-model_lasso = train(bodyfat_brozek ~ age + weight + height + neck + abdomen + hip + thigh + bicep + forearm + wrist, 
+model_lasso = train(bodyfat_brozek ~ age + weight + height + neck + chest + abdomen + hip + thigh + ankle + bicep + forearm + wrist, 
                     data = bodyfat_selected,
                     trControl = train,
                     method = "lm",
@@ -210,19 +251,19 @@ model_test$finalModel
 print(model_lasso)
 print(model_test)
 ```
-The RMSE obtained from model_lasso is 4.077981 and that of model_test is 4.078487. The MAE obtained from model_lasso is 3.329993 and that of model_test is 3.340266.
+The RMSE obtained from model_lasso is 4.1846 and that of model_test is 4.0749. The MAE obtained from model_lasso is 3.397 and that of model_test is 3.330.
 
-As the RMSE and MAE are slightly smaller in LASSO model, it is more preferred. However, considering the principle of parsimony, we will run ANOVA to further compare the two models.
+As the RMSE and MAE are slightly smaller in tested model, it is more preferred. However, considering the principle of parsimony, we will run ANOVA to further compare the two models.
 
 #### ANOVA for MLR ####
 ```{r}
 model_small = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, 
                     data = bodyfat_selected)
-model_large = lm(bodyfat_brozek ~ age + weight + height + neck + abdomen + hip + thigh + bicep + forearm + wrist, data = bodyfat_selected)
+model_large = lm(bodyfat_brozek ~ age + weight + height + neck + chest + abdomen + hip + thigh + ankle + bicep + forearm + wrist, data = bodyfat_selected)
 
 anova(model_small,model_large)
 ```
-F = 0.5015, p_value = 0.6062, we fail to reject H0 and conclude that the larger model is not superior. Now, according to the principle of parsimony, we will choose the small model. 
+F = 0.4781, p_value = 0.7518, we fail to reject H0 and conclude that the larger model is not superior. Now, according to the principle of parsimony, we will choose the small model. 
 ```{r}
 model_1 = model_small
 summary(model_1)
@@ -256,7 +297,7 @@ __model_2 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + fo
 ```{r}
 model_2 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist + weight*neck + neck*abdomen, data = bodyfat_selected)
 summary(model_2)
-model_2_table = broom::tidy(summary(model_2))
+broom::tidy(summary(model_2))
 ```
 
 
@@ -348,12 +389,12 @@ check_collinearity(without1)
 ```
 It's found that, there VIF value is very high for weight, hip and abdomen terms, indicating their strong correlation with other variables. 
 
-Let's remove the weight term with highest VIF(15.99). 
+Let's remove the weight term with highest VIF(15.62). 
 ```{r}
 without1_new = lm(bodyfat_brozek ~ age + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_out_1)
 check_collinearity(without1_new)
 ```
-The correlation between the variables is lowered, but we still have hip(8.61), thigh(5.64) and abdomen(6.26) with high VIF. Then we remove the hip term.  
+The correlation between the variables is lowered, but we still have hip(8.64), thigh(5.37) and abdomen(6.21) with high VIF. Then we remove the hip term.  
 ```{r}
 without1_new_2 = lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist, data = bodyfat_out_1)
 check_collinearity(without1_new_2)
@@ -372,7 +413,7 @@ summary(model_2f)
 ## Cross validation ##
 Let's create RMSE distribution boxplot
 ```{r}
-set.seed(2)
+set.seed(1)
 cv_df = crossv_mc(bodyfat_selected, 100) %>%
   mutate(train = map(train, as_tibble),
          test = map(test, as_tibble)) %>%
@@ -399,7 +440,7 @@ rmse_boxplot
 By plotting the RMSE distribution of two model, we can find that the interaction model has the lower RMSE, which is more prefered.  
 
 ```{r}
-set.seed(2)
+set.seed(1)
 train = trainControl(method = "cv", number = 10)
 
 mod_1_cv = train(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist, data = bodyfat_out_1, trControl = train, method = "lm", na.action = na.pass)
@@ -409,16 +450,12 @@ mod_2_cv = train(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wris
 RMSE = bind_rows(
   as_tibble(mod_1_cv$results),
   as_tibble(mod_2_cv$results)
-) %>%
-<<<<<<< HEAD
-  knitr:: kable(digit = 3)
-RMSE
-=======
+)
+RMSE %>%
   knitr::kable(digit = 3)
->>>>>>> 464a162a43c4b1d937f040b86ee747fab6b0e9db
 ```
 
-Model 2's RMSE(3.945) is slightly smaller than that of model 1(4.009). 
+Model 2's RMSE(3.989) is slightly smaller than that of model 1(4.019). 
 
 Finally, based on the data analysis, the final model we would choose to is the model 2 with interactions terms. 
 
@@ -428,7 +465,7 @@ final_model = lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wris
 summary(final_model)
 broom::tidy(summary(final_model))
 ```
-__bodyfat_brozek = -78.5 + 0.0997*age + 1.33*neck + 1.43*abdomen + 0.0955*thigh + 0.290*forearm -2.02*wrist - 0.0192*neck:abdomen__
+__bodyfat_brozek = -72.7 + 0.0903*age + 1.23*neck + 1.39*abdomen + 0.0627*thigh + 0.300*forearm -2.05*wrist - 0.0178*neck:abdomen__
 
 
 
