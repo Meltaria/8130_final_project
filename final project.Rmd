@@ -110,7 +110,7 @@ We can find that, most of the variables have linear correlation with others. It 
 
 ## Building models ## 
 All the variables are normally distributed and required no transformation.
-As the outcome and predictors are all quantitative data, it would be not proper to fit the model in Logistic Regression or exponential regression. Thus linear regression may be still the best choice for use to build the model. 
+As the outcome and predictors are all quantitative data, it would be improper to fit the model in Logistic Regression or exponential regression. Thus linear regression may be still the best choice for use to build the model. 
 
 Let's firstly build fit all the variables in a Multiple linear regression model. 
 ```{r}
@@ -247,7 +247,7 @@ inter_group = table %>%
 
 inter_group
 ```
-From the table, based on the pvalue smaller than 0.05. We found that only the weight:neck and neck: abdomen's interaction are statistically significant. Thus, there two interactive groups would be included in the model. 
+From the table, based on the pvalue smaller than 0.05. We found that only the weight:neck and neck: abdomen's interaction are statistically significant. Thus, these two interactive groups would be included in the model. 
 
 The model with interaction between significant associated predictors is:
 __model_2 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist + weight:neck + neck:abdomen, data = bodyfat_selected)__
@@ -296,12 +296,12 @@ Cook's distance plot.
 plot(model_1, which = 4)  #39, #175, #216
 plot(model_2, which = 4)  #3, #216, #250 
 ```
-There were some influential outliers were detected. Further process of outliers are required. 
+There are in total 252 samples used to build our models, so the rule of thumb for Cook's distance is D > 4/n = 0.016. There were some influential outliers were detected. Further process of outliers are required. 
 
 Let's remove the influential points.
 ```{r}
-bodyfat_out = bodyfat_selected %>%
-  filter(!row_number() %in% c(3, 39, 175, 216, 250))
+bodyfat_out_1 = bodyfat_selected[-c(39,175,216),]
+bodyfat_out_2 = bodyfat_selected[-c(3,216,250),]
 ```
 
 Then, let's fit the model with and without influential points. 
@@ -309,7 +309,7 @@ __Check model_1__
 ```{r}
 with1 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_selected)
 
-without1 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_out)
+without1 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_out_1)
 
 summary(with1)
 summary(without1)
@@ -323,7 +323,7 @@ check model 2
 ```{r}
 with2 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist + weight*neck + neck*abdomen, data = bodyfat_selected)
 
-without2 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist + weight*neck + neck*abdomen, data = bodyfat_out)
+without2 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist + weight*neck + neck*abdomen, data = bodyfat_out_2)
 
 summary(with2)
 summary(without2)
@@ -376,7 +376,7 @@ cv_df = crossv_mc(bodyfat_out, 100) %>%
   mutate(train = map(train, as_tibble),
          test = map(test, as_tibble)) %>%
   mutate(
-    mod_1 = map(.x= train, ~lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist, data =.x)),
+    mod_1 = map(.x = train, ~lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist, data =.x)),
     mod_2 = map(.x = train, ~lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist + neck*abdomen, data =.x))
   ) %>%
   mutate(
@@ -389,9 +389,9 @@ rmse_boxplot = cv_df %>%
   pivot_longer(rmse_1:rmse_2,
                names_to = "model",
                values_to = "rmse",
-               names_prefix = "remse_")%>%
-  ggplot(aes(x = model, y =rmse)) + geom_boxplot() +
-  labs(x= "Model", y = "RMSE")
+               names_prefix = "remse_") %>%
+  ggplot(aes(x = model, y = rmse)) + geom_boxplot() +
+  labs(x = "Model", y = "RMSE")
 
 rmse_boxplot
 ```
