@@ -66,13 +66,14 @@ ggplot(Body_df, aes_string(y = colnames[i])) +
   print(plot)
 }
 ```
-From the distribution plots of the variables, we can find that, all the variables are in normal distribution with very few outliers. Thus, no transformation may be requried. 
+From the distribution plots of the variables, we can find that, all the variables are in normal distribution with very few outliers. Thus, no transformation is required. There is a sample whose body fat is 0 percent, which is unusual, and we eliminate this point. Since our sample size is small, we won't do any research to remove other unusual date points that are not such obvious.
 
 Here, we clean the data 
 ```{r}
 bodyfat_selected = 
   Body_df %>% 
-  dplyr::select(-id,-bodyfat_siri,-body_density)
+  dplyr::select(-id,-bodyfat_siri,-body_density) %>% 
+  filter(bodyfat_brozek > 0)
 ```
 
 Here are the correlation between the bodyfat_brozek with the predictors 
@@ -416,7 +417,6 @@ summary(final_model)
 broom::tidy(summary(final_model))
 ```
 __bodyfat_brozek = -78.5 + 0.0997*age + 1.33*neck + 1.43*abdomen + 0.0955*thigh + 0.290*forearm -2.02*wrist - 0.0192*neck:abdomen__
-
 
 
 
