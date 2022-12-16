@@ -66,7 +66,7 @@ ggplot(Body_df, aes_string(y = colnames[i])) +
   print(plot)
 }
 ```
-From the distribution plots of the variables, we can find that, all the variables are in normal distribution with very few outliers. Thus, no transformation is required. There is a sample whose body fat is 0 percent, which is unusual, and we eliminate this point. Since our sample size is small, we won't do any research to remove other unusual date points that are not such obvious.
+From the distribution plots of the variables, we can find that, all the variables are in normal distribution with very few outliers. Thus, no transformation is required. There is a sample in which body fat calculated with Brozek’s equation is 0 percent, which is abnormal, so we eliminate this point. Since our sample size is small, we won't do any further research to remove other abnormal data points that are not so obvious.
 
 Here, we clean the data 
 ```{r}
@@ -290,7 +290,7 @@ Cook's distance plot.
 plot(model_1, which = 4)  #39, #175, #216
 plot(model_2, which = 4)  #3, #216, #250 
 ```
-There are in total 252 samples used to build our models, so the rule of thumb for Cook's distance is D > 4/n = 0.016. There were some influential outliers were detected. Further process of outliers are required. 
+There are in total 251 samples used to build our models, so the rule of thumb for Cook's distance is D > 4/n = 0.016. There were some influential outliers were detected. Further process of outliers are required. 
 
 Let's remove the influential points.
 ```{r}
