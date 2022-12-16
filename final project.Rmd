@@ -139,7 +139,7 @@ __lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + fo
 From the procedures we done above, the fianl model was agreed to be __lm(formula = bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_selected)__
 
 
-#### Tested Based Procedures ####
+#### Test Based Procedures ####
 Then, let's try Tested Based Procedures
 "Cp test"
 ```{r}
