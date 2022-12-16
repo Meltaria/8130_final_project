@@ -19,6 +19,7 @@ library(interactions)
 library(caret)
 library(MASS)
 library(performance)
+
 set.seed(1)
 ```
 
@@ -43,6 +44,7 @@ ggplot(Body_df, aes(x = bodyfat_brozek)) +
 Here are the distribution of all the variables shown in histogram
 ```{r}
 colnames = colnames(Body_df)
+pdf("histogram.pdf")
 for (i in 5:17) {
   plot = 
 ggplot(Body_df, aes_string(x = colnames[i])) + 
@@ -57,7 +59,9 @@ ggplot(Body_df, aes_string(x = colnames[i])) +
 Here are the distribution of all the variables shown in boxplot
 ```{r}
 colnames = colnames(Body_df)
-for (i in 5:17) {
+pdf("boxplot.pdf")
+boxplot=
+  for (i in 5:17) {
   plot = 
 ggplot(Body_df, aes_string(y = colnames[i])) + 
  geom_boxplot() + 
@@ -78,6 +82,8 @@ bodyfat_selected =
 Here are the correlation between the bodyfat_brozek with the predictors 
 ```{r,message = FALSE, warning = FALSE} 
 # Building scatter plots
+pdf("correlation.pdf")
+correlation = 
 for (i in 5:17) {
   plot = 
   Body_df %>% 
@@ -91,12 +97,12 @@ for (i in 5:17) {
 
 ```{r}
 # Pair the variables
-pairs(bodyfat_selected)
+pair = pairs(bodyfat_selected)
 ```
 
 ```{r}
 # Corrplot the variables
-corrplot(cor(bodyfat_selected), type = "upper", diag = FALSE)
+corplot = corrplot(cor(bodyfat_selected), type = "upper", diag = FALSE)
 ```
 
 We can find that, most of the variables have linear correlation with others. It should be paid attention in later data analysis. 
@@ -249,6 +255,7 @@ __model_2 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + fo
 ```{r}
 model_2 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist + weight*neck + neck*abdomen, data = bodyfat_selected)
 summary(model_2)
+model_2_table = broom::tidy(summary(model_2))
 ```
 
 
