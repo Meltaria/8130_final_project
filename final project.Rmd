@@ -369,7 +369,7 @@ cv_df = crossv_mc(bodyfat_out, 100) %>%
   mutate(train = map(train, as_tibble),
          test = map(test, as_tibble)) %>%
   mutate(
-    mod_1 = map(.x= train, ~lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist, data =.x)),
+    mod_1 = map(.x = train, ~lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist, data =.x)),
     mod_2 = map(.x = train, ~lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist + neck*abdomen, data =.x))
   ) %>%
   mutate(
@@ -382,9 +382,9 @@ rmse_boxplot = cv_df %>%
   pivot_longer(rmse_1:rmse_2,
                names_to = "model",
                values_to = "rmse",
-               names_prefix = "remse_")%>%
-  ggplot(aes(x = model, y =rmse)) + geom_boxplot() +
-  labs(x= "Model", y = "RMSE")
+               names_prefix = "remse_") %>%
+  ggplot(aes(x = model, y = rmse)) + geom_boxplot() +
+  labs(x = "Model", y = "RMSE")
 
 rmse_boxplot
 ```
