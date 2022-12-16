@@ -459,7 +459,7 @@ Model 2's RMSE(3.989) is slightly smaller than that of model 1(4.019).
 
 Finally, based on the data analysis, the final model we would choose to is the model 2 with interactions terms. 
 
-The final model would be
+The final model would be bodyfat_brozek = -72.7 + 0.090*age + 1.23*neck + 1.39*abdomen + 0.0627*thigh + 0.300*forearm -2.05*wrist - 0.0178*neck:abdomen
 ```{r}
 final_model = lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist + neck*abdomen, data = bodyfat_out_2)
 summary(final_model)
@@ -467,7 +467,6 @@ table_2= data.frame(broom::tidy(summary(final_model)))
 table_2 %>%
   knitr::kable(digit = 3)
 ```
-__bodyfat_brozek = -72.7 + 0.0903*age + 1.23*neck + 1.39*abdomen + 0.0627*thigh + 0.300*forearm -2.05*wrist - 0.0178*neck:abdomen__
 
 
 

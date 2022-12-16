@@ -2203,7 +2203,9 @@ RMSE %&gt;%
 1(4.019).</p>
 <p>Finally, based on the data analysis, the final model we would choose
 to is the model 2 with interactions terms.</p>
-<p>The final model would be</p>
+<p>The final model would be bodyfat_brozek = -72.7 + 0.090<em>age +
+1.23</em>neck + 1.39<em>abdomen + 0.0627</em>thigh + 0.300<em>forearm
+-2.05</em>wrist - 0.0178*neck:abdomen</p>
 <pre class="r"><code>final_model = lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist + neck*abdomen, data = bodyfat_out_2)
 summary(final_model)</code></pre>
 <pre><code>## 
@@ -2303,9 +2305,6 @@ table_2 %&gt;%
 </tr>
 </tbody>
 </table>
-<p>__bodyfat_brozek = -72.7 + 0.0903<em>age + 1.23</em>neck +
-1.39<em>abdomen + 0.0627</em>thigh + 0.300<em>forearm -2.05</em>wrist -
-0.0178*neck:abdomen__</p>
 </div>
 
 
