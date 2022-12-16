@@ -293,8 +293,8 @@ There are in total 252 samples used to build our models, so the rule of thumb fo
 
 Let's remove the influential points.
 ```{r}
-bodyfat_out = bodyfat_selected %>%
-  filter(!row_number() %in% c(3, 39, 175, 216, 250))
+bodyfat_out_1 = bodyfat_selected[-c(39,175,216),]
+bodyfat_out_2 = bodyfat_selected[-c(3,216,250),]
 ```
 
 Then, let's fit the model with and without influential points. 
@@ -302,7 +302,7 @@ __Check model_1__
 ```{r}
 with1 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_selected)
 
-without1 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_out)
+without1 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist, data = bodyfat_out_1)
 
 summary(with1)
 summary(without1)
@@ -316,7 +316,7 @@ check model 2
 ```{r}
 with2 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist + weight*neck + neck*abdomen, data = bodyfat_selected)
 
-without2 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist + weight*neck + neck*abdomen, data = bodyfat_out)
+without2 = lm(bodyfat_brozek ~ age + weight + neck + abdomen + hip + thigh + forearm + wrist + weight*neck + neck*abdomen, data = bodyfat_out_2)
 
 summary(with2)
 summary(without2)
