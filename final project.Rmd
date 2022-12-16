@@ -421,10 +421,7 @@ The final model would be
 ```{r}
 final_model = lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist + neck*abdomen, data = bodyfat_out)
 summary(final_model)
-final_model_table = broom::tidy(summary(final_model))
-pdf("Final model.pdf")
-grid.table(final_model_table)
-dev.off
+broom::tidy(summary(final_model))
 ```
 __bodyfat_brozek = -57.2 + 0.104*age + 0.774*neck + 1.19*abdomen + 0.102*thigh + 0.339*forearm -2.1*wrist - 0.013*neck:abdomen__
 
