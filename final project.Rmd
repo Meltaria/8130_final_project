@@ -2,7 +2,7 @@
 title: "final project"
 author: "Yuchen Zhang"
 date: "2022-12-12"
-output: html_document
+output: pdf_document
 ---
 ```{r, include=FALSE}
 library(tidyverse)
