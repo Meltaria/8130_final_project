@@ -28,8 +28,10 @@ set.seed(1)
 Import data
 ```{r}
 Body_df = readxl::read_excel("data/body_density_data.xlsx")
-tbl_summary(Body_df)
-summary(Body_df)
+Body_df %>% 
+tbl_summary() %>% 
+bold_labels()
+
 ```
 
 We chose fat density of Brozek's function as outcome and here is the distribution of bodyfat_brozek
@@ -44,15 +46,12 @@ ggplot(Body_df, aes(x = bodyfat_brozek)) +
 Here are the distribution of all the variables shown in histogram
 ```{r}
 colnames = colnames(Body_df)
-pdf("histogram.pdf")
+par(mfrow=c(3,5))
 for (i in 5:17) {
-  plot = 
-ggplot(Body_df, aes_string(x = colnames[i])) + 
+ ggplot(Body_df, aes_string(x = colnames[i])) + 
  geom_histogram(aes(y = ..density..), color = "white", fill = "light blue",binwidth = 1) + 
  geom_density(alpha = .2) +
  labs(title = sprintf("Distributions of %s", colnames[i]) )
-  
-  print(plot)
 }
 ```
 
