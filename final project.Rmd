@@ -19,7 +19,7 @@ library(interactions)
 library(caret)
 library(MASS)
 library(performance)
-
+library(gridExtra)
 set.seed(1)
 ```
 
@@ -339,7 +339,7 @@ Both plots without influential point showed to better than those with influentia
 ```{r}
 corrplot(cor(bodyfat_out), type = "upper", diag = FALSE)
 ```
-Still, even after excluding the influential data, all the predictors, except age, are higly correlated. 
+Still, even after excluding the influential data, all the predictors, except age, are highly correlated. 
 
 Let's check the model without interactions terms.
 ```{r}
@@ -405,11 +405,12 @@ mod_1_cv = train(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wris
 
 mod_2_cv = train(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist + neck*abdomen, data = bodyfat_out, trControl = train, method = "lm", na.action = na.pass)
 
-bind_rows(
+RMSE = bind_rows(
   as_tibble(mod_1_cv$results),
   as_tibble(mod_2_cv$results)
 ) %>%
   knitr:: kable(digit = 3)
+RMSE
 ```
 
 Model 2's RMSE(3.966) is slightly smaller than that of model 1(3.979). 
@@ -420,7 +421,10 @@ The final model would be
 ```{r}
 final_model = lm(bodyfat_brozek ~ age  + neck + abdomen + thigh + forearm + wrist + neck*abdomen, data = bodyfat_out)
 summary(final_model)
-broom::tidy(summary(final_model))
+final_model_table = broom::tidy(summary(final_model))
+pdf("Final model.pdf")
+grid.table(final_model_table)
+dev.off
 ```
 __bodyfat_brozek = -57.2 + 0.104*age + 0.774*neck + 1.19*abdomen + 0.102*thigh + 0.339*forearm -2.1*wrist - 0.013*neck:abdomen__
 
